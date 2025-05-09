@@ -98,18 +98,30 @@ detect_crop() {
   if [[ "$CROP" != "null" ]]; then
     WIDTH=$(echo "$CROP" | sed -n 's/.*crop=\([0-9]*\):\([0-9]*\):\([0-9]*\):\([0-9]*\).*/\1/p')
     HEIGHT=$(echo "$CROP" | sed -n 's/.*crop=\([0-9]*\):\([0-9]*\):\([0-9]*\):\([0-9]*\).*/\2/p')
+    X_OFFSET=$(echo "$CROP" | sed -n 's/.*crop=\([0-9]*\):\([0-9]*\):\([0-9]*\):\([0-9]*\).*/\3/p')
     Y_OFFSET=$(echo "$CROP" | sed -n 's/.*crop=\([0-9]*\):\([0-9]*\):\([0-9]*\):\([0-9]*\).*/\4/p')
 
+    ORIGINAL_WIDTH=$(ffprobe -v error -select_streams v:0 -show_entries stream=width \
+      -of default=noprint_wrappers=1:nokey=1 "$INPUT")
     ORIGINAL_HEIGHT=$(ffprobe -v error -select_streams v:0 -show_entries stream=height \
       -of default=noprint_wrappers=1:nokey=1 "$INPUT")
 
+    if [[ -n "$WIDTH" && -n "$X_OFFSET" && -n "$ORIGINAL_WIDTH" ]]; then
+      REMOVED_PIXELS_WIDTH=$((ORIGINAL_WIDTH - WIDTH - X_OFFSET))
+    else
+      REMOVED_PIXELS_WIDTH=0
+    fi
+
     if [[ -n "$HEIGHT" && -n "$Y_OFFSET" && -n "$ORIGINAL_HEIGHT" ]]; then
-      REMOVED_PIXELS=$((ORIGINAL_HEIGHT - HEIGHT - Y_OFFSET))
-      if ((REMOVED_PIXELS < 20)); then
-        mv "$INPUT" "$DIRNAME/$NEW_NAME"
-        log_message "Info" "$(timestamp) 🏷️ File renamed to indicate no processing needed: $NEW_NAME"
-        soft_exit "Less than 20 pixels removed from height. Exiting process."
-      fi
+      REMOVED_PIXELS_HEIGHT=$((ORIGINAL_HEIGHT - HEIGHT - Y_OFFSET))
+    else
+      REMOVED_PIXELS_HEIGHT=0
+    fi
+
+    if ((REMOVED_PIXELS_WIDTH < 20 && REMOVED_PIXELS_HEIGHT < 20)); then
+      mv "$INPUT" "$DIRNAME/$NEW_NAME"
+      log_message "Info" "$(timestamp) 🏷️ File renamed to indicate no processing needed: $NEW_NAME"
+      soft_exit "Less than 20 pixels removed from either width or height. Exiting process."
     fi
   fi
 
