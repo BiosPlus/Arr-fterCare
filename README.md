@@ -1,6 +1,3 @@
-# Arr-fterCare
-A set of scripts for sonarr/radarr.
-
 ## arrftercare.sh
 
 `arrftercare.sh` is a Bash script designed to enhance the post-processing of media files managed by Sonarr and Radarr. It automates tasks such as crop detection, audio stream handling, and video encoding to ensure optimal file quality and size.
