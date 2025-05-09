@@ -89,7 +89,33 @@ detect_crop() {
     log_message "Debug" "$(timestamp) ✅ Crop detected: $CROP"
   fi
 
+  local DIRNAME="$(dirname "$INPUT")"
+  local FILENAME="$(basename "$INPUT")"
+  local EXT="${FILENAME##*.}"
+  local NAME="${FILENAME%.*}"
+  local NEW_NAME="${NAME} [PPd].${EXT}"
+
+  if [[ "$CROP" != "null" ]]; then
+    WIDTH=$(echo "$CROP" | sed -n 's/.*crop=\([0-9]*\):\([0-9]*\):\([0-9]*\):\([0-9]*\).*/\1/p')
+    HEIGHT=$(echo "$CROP" | sed -n 's/.*crop=\([0-9]*\):\([0-9]*\):\([0-9]*\):\([0-9]*\).*/\2/p')
+    Y_OFFSET=$(echo "$CROP" | sed -n 's/.*crop=\([0-9]*\):\([0-9]*\):\([0-9]*\):\([0-9]*\).*/\4/p')
+
+    ORIGINAL_HEIGHT=$(ffprobe -v error -select_streams v:0 -show_entries stream=height \
+      -of default=noprint_wrappers=1:nokey=1 "$INPUT")
+
+    if [[ -n "$HEIGHT" && -n "$Y_OFFSET" && -n "$ORIGINAL_HEIGHT" ]]; then
+      REMOVED_PIXELS=$((ORIGINAL_HEIGHT - HEIGHT - Y_OFFSET))
+      if ((REMOVED_PIXELS < 20)); then
+        mv "$INPUT" "$DIRNAME/$NEW_NAME"
+        log_message "Info" "$(timestamp) 🏷️ File renamed to indicate no processing needed: $NEW_NAME"
+        soft_exit "Less than 20 pixels removed from height. Exiting process."
+      fi
+    fi
+  fi
+
   if [[ "$CROP" == "null" ]]; then
+    mv "$INPUT" "$DIRNAME/$NEW_NAME"
+    log_message "Info" "$(timestamp) 🏷️ File renamed to indicate no processing needed: $NEW_NAME"
     soft_exit "No cropping needed. Exiting process."
   fi
 }
