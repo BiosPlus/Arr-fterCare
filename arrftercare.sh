@@ -53,6 +53,11 @@ elif [ -n "$sonarr_eventtype" ]; then
   EVENT_TYPE="$sonarr_eventtype"
 fi
 
+if [ "$EVENT_TYPE" == "Test" ]; then
+  log_message "Test event detected. Exiting gracefully."
+  exit 0
+fi
+
 if [ "$EVENT_TYPE" != "Download" ]; then
   soft_exit "Not a download event, skipping."
 fi
