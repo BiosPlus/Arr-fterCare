@@ -1,0 +1,12 @@
+[Unit]
+Description=ArrfterCare Service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c "while true; do %h/scripts/arrftercare.sh %h/media/TV\ Shows/; sleep 60; done"
+Restart=unless-stopped
+
+[Install]
+WantedBy=default.target
