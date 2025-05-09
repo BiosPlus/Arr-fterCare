@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Function to get the current timestamp
-timestamp() {
-  echo "$(date +'%Y-%m-%d %H:%M:%S')"
-}
-
 # Fail fast on error
 set -e
 
@@ -22,6 +17,12 @@ hard_exit() {
   log_message "Info" "$(timestamp) ❌ $1"
   exit 1
 }
+
+# Function to get the current timestamp
+timestamp() {
+  echo "$(date +'%Y-%m-%d %H:%M:%S')"
+}
+
 
 # Function to log messages with levels
 log_message() {
