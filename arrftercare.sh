@@ -134,6 +134,10 @@ encode_file() {
   # Encode with crop, CRF 18, constrained to original bitrate
   log_message "Debug" "$(timestamp) 🎬 Encoding to: $OUTPUT"
 
+  BACKUP="$INPUT.bak"
+  cp "$INPUT" "$BACKUP"
+  log_message "Info" "$(timestamp) 🛡️ Backup created: $BACKUP"
+
   if ffmpeg -y -i "$INPUT" \
     -vf "$CROP" \
     -c:v libx264 -crf 18 -preset slow \
@@ -148,10 +152,9 @@ encode_file() {
 
     rm -f "$INPUT"
     log_message "Info" "$(timestamp) 🧹 Original file deleted: $INPUT"
+    rm -f "$BACKUP"
+    log_message "Info" "$(timestamp) 🧹 Backup file deleted: $BACKUP"   
   else
-    BACKUP="$INPUT.bak"
-    cp "$INPUT" "$BACKUP"
-    log_message "Info" "$(timestamp) 🛡️ Backup created: $BACKUP"
     log_message "Info" "$(timestamp) ❌ Encode failed. Restoring original file from backup."
     mv "$BACKUP" "$INPUT"
   fi
